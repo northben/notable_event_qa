@@ -1,0 +1,69 @@
+<form script="notable_qa.js">
+  <label>Notable QA</label>
+  <fieldset submitButton="false"></fieldset>
+  <row>
+    <panel>
+      <input type="radio" token="filter">
+        <label>Filter</label>
+        <choice value="satisfaction=*">With QA</choice>
+        <choice value="NOT satisfaction=*">No QA</choice>
+        <default>NOT satisfaction=*</default>
+      </input>
+      <table id="notable_list">
+        <title>Select a Notable</title>
+        <search>
+          <query>| `es_notable_events` 
+| `get_reviewstatuses` 
+| eval _event_id=event_id
+| lookup notable_event_qa_lookup _key as event_id OUTPUTNEW satisfaction comments
+| fields _time status urgency owner rule_name security_domain status_* satisfaction comments _event_id
+| search $filter$</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <drilldown>
+          <set token="key">$row._event_id$</set>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel depends="$key$">
+      <title>Perform QA on Notable $key$</title>
+      <input type="radio" token="satisfaction">
+        <label>Satisfaction</label>
+        <choice value="happy">Happy</choice>
+        <choice value="sad">Sad</choice>
+        <default>happy</default>
+      </input>
+      <input type="text" token="comments">
+        <label>Comments</label>
+        <default>some text</default>
+        <initialValue>some text</initialValue>
+      </input>
+      <table>
+        <search>
+          <query>| makeresults</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+      </table>
+      <html>
+        <div>
+          <input type="button" id="submit_feedback" value="Submit QA feedback"/>
+        </div>
+      </html>
+    </panel>
+  </row>
+</form>
